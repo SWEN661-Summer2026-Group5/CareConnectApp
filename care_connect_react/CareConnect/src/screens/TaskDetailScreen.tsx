@@ -1,8 +1,8 @@
 import React from 'react';
-import {StyleSheet, Text, View} from 'react-native';
-import {Card, PrimaryButton} from '../components/ui';
-import {useAppState} from '../state/AppState';
-import {formatDueDate} from '../utils/formatDueDate';
+import { StyleSheet, Text, View } from 'react-native';
+import { Card, PrimaryButton } from '../components/ui';
+import { useAppState } from '../state/AppState';
+import { formatDueDate } from '../utils/formatDueDate';
 
 export interface TaskDetailScreenProps {
   taskId: string;
@@ -15,7 +15,7 @@ export default function TaskDetailScreen({
   onResolved,
   onOpenMenu,
 }: TaskDetailScreenProps) {
-  const {tasks, markTaskResolved} = useAppState();
+  const { tasks, markTaskResolved } = useAppState();
   const task = tasks.find(t => t.id === taskId);
 
   if (!task) {
@@ -33,7 +33,9 @@ export default function TaskDetailScreen({
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Task Details</Text>
+      <Text accessibilityRole="header" style={styles.title}>
+        Task Details
+      </Text>
 
       <Card>
         <Text style={styles.taskTitle}>{task.title}</Text>
@@ -61,20 +63,28 @@ export default function TaskDetailScreen({
       {!task.completed && (
         <PrimaryButton
           label="Mark as Resolved"
+          accessibilityLabel={`Mark ${task.title} as resolved`}
+          accessibilityHint="Moves this task to completed tasks"
           testID="task-resolve"
           onPress={resolve}
         />
       )}
-      <PrimaryButton label="MENU" testID="task-menu" onPress={() => onOpenMenu?.()} />
+      <PrimaryButton
+        label="MENU"
+        accessibilityLabel="Open menu"
+        accessibilityHint="Opens the main navigation menu"
+        testID="task-menu"
+        onPress={() => onOpenMenu?.()}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, padding: 24},
-  title: {fontSize: 28, fontWeight: '600', marginBottom: 24},
-  taskTitle: {fontSize: 20, fontWeight: '600', marginBottom: 8},
-  label: {marginBottom: 8},
-  meta: {color: '#17B5C3', marginBottom: 4},
-  spacer: {flex: 1},
+  container: { flex: 1, padding: 24 },
+  title: { fontSize: 28, fontWeight: '600', marginBottom: 24 },
+  taskTitle: { fontSize: 20, fontWeight: '600', marginBottom: 8 },
+  label: { marginBottom: 8 },
+  meta: { color: '#17B5C3', marginBottom: 4 },
+  spacer: { flex: 1 },
 });

@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
-import {ScrollView, StyleSheet, Text} from 'react-native';
-import {Field, PrimaryButton, SecondaryButton} from '../components/ui';
-import {makeContact, useAppState} from '../state/AppState';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { Field, PrimaryButton, SecondaryButton } from '../components/ui';
+import { makeContact, useAppState } from '../state/AppState';
 
 export interface AddContactScreenProps {
   onConfirm?: () => void;
@@ -14,7 +14,7 @@ export default function AddContactScreen({
   onDiscard,
   onOpenMenu,
 }: AddContactScreenProps) {
-  const {addContact} = useAppState();
+  const { addContact } = useAppState();
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [phone, setPhone] = useState('');
@@ -39,11 +39,14 @@ export default function AddContactScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Add Contact</Text>
+      <Text accessibilityRole="header" style={styles.title}>
+        Add Contact
+      </Text>
       <Field
         label="Contact Name"
         testID="add-contact-name"
         value={name}
+        accessibilityHint="Enter the contact's full name"
         onChangeText={setName}
       />
       <Field
@@ -51,6 +54,7 @@ export default function AddContactScreen({
         testID="add-contact-role"
         placeholder="Doctor, Nurse, etc."
         value={role}
+        accessibilityHint="Enter the contact's role if known"
         onChangeText={setRole}
       />
       <Field
@@ -59,6 +63,7 @@ export default function AddContactScreen({
         placeholder="(555) 123-4567"
         keyboardType="phone-pad"
         value={phone}
+        accessibilityHint="Enter the contact's phone number"
         onChangeText={setPhone}
       />
       <Field
@@ -68,20 +73,26 @@ export default function AddContactScreen({
         keyboardType="email-address"
         autoCapitalize="none"
         value={email}
+        accessibilityHint="Enter the contact's email address"
         onChangeText={setEmail}
       />
       <PrimaryButton
         label="Confirm"
+        accessibilityLabel="Confirm new contact"
+        accessibilityHint="Adds this contact to the contact list"
         testID="add-contact-confirm"
         onPress={confirm}
       />
       <SecondaryButton
         label="Discard Changes"
+        accessibilityHint="Returns without adding this contact"
         testID="add-contact-discard"
         onPress={() => onDiscard?.()}
       />
       <PrimaryButton
         label="MENU"
+        accessibilityLabel="Open menu"
+        accessibilityHint="Opens the main navigation menu"
         testID="add-contact-menu"
         onPress={() => onOpenMenu?.()}
       />
@@ -90,6 +101,6 @@ export default function AddContactScreen({
 }
 
 const styles = StyleSheet.create({
-  container: {padding: 24},
-  title: {fontSize: 28, fontWeight: '600', marginBottom: 24},
+  container: { padding: 24 },
+  title: { fontSize: 28, fontWeight: '600', marginBottom: 24 },
 });

@@ -1,6 +1,6 @@
-import React, {useState} from 'react';
-import {ScrollView, StyleSheet, Text, View} from 'react-native';
-import {Card, Field, PrimaryButton} from '../components/ui';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Card, Field, PrimaryButton } from '../components/ui';
 
 export interface LoginScreenProps {
   onSignIn?: () => void;
@@ -24,16 +24,21 @@ export default function LoginScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.brand}>CareConnect</Text>
+      <Text accessibilityRole="header" style={styles.brand}>
+        CareConnect
+      </Text>
       <Text style={styles.tagline}>Your personal health companion</Text>
       <Card>
-        <Text style={styles.heading}>Sign In</Text>
+        <Text accessibilityRole="header" style={styles.heading}>
+          Sign In
+        </Text>
         <Field
           label="Email Address"
           testID="login-email"
           placeholder="Enter your email"
           keyboardType="email-address"
           autoCapitalize="none"
+          accessibilityHint="Enter the email address for your CareConnect account"
           value={email}
           onChangeText={setEmail}
         />
@@ -43,32 +48,52 @@ export default function LoginScreen({
             testID="login-password"
             placeholder="Enter your password"
             secureTextEntry={!showPassword}
+            accessibilityHint="Enter your CareConnect password"
             value={password}
             onChangeText={setPassword}
           />
           <Text
+            accessible
+            accessibilityLabel={
+              showPassword ? 'Hide password' : 'Show password'
+            }
             testID="login-toggle-password"
             accessibilityRole="button"
+            accessibilityHint={
+              showPassword
+                ? 'Hides the password characters'
+                : 'Shows the password characters'
+            }
             style={styles.showToggle}
-            onPress={() => setShowPassword(v => !v)}>
+            onPress={() => setShowPassword(v => !v)}
+          >
             {showPassword ? 'HIDE' : 'SHOW'}
           </Text>
         </View>
         <Text
+          accessible
+          accessibilityLabel="Forgot password"
           testID="login-forgot"
           accessibilityRole="button"
+          accessibilityHint="Opens password reset"
           style={styles.link}
-          onPress={() => onForgotPassword?.()}>
+          onPress={() => onForgotPassword?.()}
+        >
           Forgot Password?
         </Text>
-        <PrimaryButton label="Sign In" testID="login-submit" onPress={signIn} />
+        <PrimaryButton
+          label="Sign In"
+          accessibilityHint="Opens the CareConnect home screen"
+          testID="login-submit"
+          onPress={signIn}
+        />
       </Card>
     </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {padding: 24},
+  container: { padding: 24 },
   brand: {
     fontSize: 28,
     fontWeight: '600',
@@ -76,8 +101,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 48,
   },
-  tagline: {textAlign: 'center', color: '#17B5C3', marginTop: 8, marginBottom: 48},
-  heading: {fontSize: 20, fontWeight: '600', marginBottom: 24},
-  showToggle: {position: 'absolute', right: 12, top: 36, color: '#0B7074'},
-  link: {color: '#0B7074', marginBottom: 8},
+  tagline: {
+    textAlign: 'center',
+    color: '#17B5C3',
+    marginTop: 8,
+    marginBottom: 48,
+  },
+  heading: { fontSize: 20, fontWeight: '600', marginBottom: 24 },
+  showToggle: { position: 'absolute', right: 12, top: 36, color: '#0B7074' },
+  link: { color: '#0B7074', marginBottom: 8 },
 });

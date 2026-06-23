@@ -119,6 +119,9 @@ class _SortButton extends StatelessWidget {
         ),
         child: Icon(
           ascending ? Icons.arrow_upward : Icons.arrow_downward,
+          semanticLabel: ascending
+              ? 'Sort contacts. Current order A to Z'
+              : 'Sort contacts. Current order Z to A',
           size: 24,
         ),
       ),
@@ -174,34 +177,35 @@ class _AddContactScreenState extends State<AddContactScreen> {
             children: [
               Text('Add Contact', style: theme.textTheme.headlineLarge),
               const Divider(height: 24),
-              Text('Contact Name', style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 8),
-              TextField(controller: _nameCtrl),
-              const SizedBox(height: 16),
-              Text('Role (optional)', style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 8),
               TextField(
-                controller: _roleCtrl,
-                decoration:
-                    const InputDecoration(hintText: 'Doctor, Nurse, etc.'),
+                controller: _nameCtrl,
+                decoration: const InputDecoration(labelText: 'Contact name'),
               ),
               const SizedBox(height: 16),
-              Text('Phone Number', style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 8),
+              TextField(
+                controller: _roleCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Role, optional',
+                  hintText: 'Doctor, Nurse, etc.',
+                ),
+              ),
+              const SizedBox(height: 16),
               TextField(
                 controller: _phoneCtrl,
                 keyboardType: TextInputType.phone,
-                decoration:
-                    const InputDecoration(hintText: '(555) 123-4567'),
+                decoration: const InputDecoration(
+                  labelText: 'Phone number',
+                  hintText: '(555) 123-4567',
+                ),
               ),
               const SizedBox(height: 16),
-              Text('Email Address', style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 8),
               TextField(
                 controller: _emailCtrl,
                 keyboardType: TextInputType.emailAddress,
-                decoration:
-                    const InputDecoration(hintText: 'email@example.com'),
+                decoration: const InputDecoration(
+                  labelText: 'Email address',
+                  hintText: 'email@example.com',
+                ),
               ),
               const SizedBox(height: 24),
               ElevatedButton(

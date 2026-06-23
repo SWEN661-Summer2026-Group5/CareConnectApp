@@ -61,27 +61,37 @@ class _LoginScreenState extends State<LoginScreen> {
                     children: [
                       Text('Sign In', style: theme.textTheme.titleLarge),
                       const SizedBox(height: 24),
-                      Text('Email Address', style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 8),
                       TextField(
                         controller: _emailCtrl,
                         keyboardType: TextInputType.emailAddress,
-                        decoration: const InputDecoration(hintText: 'Enter your email'),
+                        decoration: const InputDecoration(
+                          labelText: 'Email address',
+                          hintText: 'Enter your email',
+                        ),
                       ),
                       const SizedBox(height: 16),
-                      Text('Password', style: theme.textTheme.bodyMedium),
-                      const SizedBox(height: 8),
                       TextField(
                         controller: _passwordCtrl,
                         obscureText: !_showPassword,
                         decoration: InputDecoration(
+                          labelText: 'Password',
                           hintText: 'Enter your password',
-                          suffixIcon: TextButton(
-                            onPressed: () =>
-                                setState(() => _showPassword = !_showPassword),
-                            child: Text(
-                              _showPassword ? 'HIDE' : 'SHOW',
-                              style: TextStyle(color: theme.colorScheme.primary),
+                          suffixIcon: Semantics(
+                            label: _showPassword
+                                ? 'Hide password'
+                                : 'Show password',
+                            button: true,
+                            excludeSemantics: true,
+                            onTap: () => setState(
+                                () => _showPassword = !_showPassword),
+                            child: TextButton(
+                              onPressed: () => setState(
+                                  () => _showPassword = !_showPassword),
+                              child: Text(
+                                _showPassword ? 'HIDE' : 'SHOW',
+                                style: TextStyle(
+                                    color: theme.colorScheme.primary),
+                              ),
                             ),
                           ),
                         ),
@@ -177,12 +187,13 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                               ?.copyWith(color: theme.colorScheme.secondary),
                         ),
                         const SizedBox(height: 16),
-                        Text('Email Address', style: theme.textTheme.bodyMedium),
-                        const SizedBox(height: 8),
                         TextField(
                           controller: _emailCtrl,
                           keyboardType: TextInputType.emailAddress,
                           autofocus: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Email address',
+                          ),
                         ),
                         const SizedBox(height: 24),
                         ElevatedButton(

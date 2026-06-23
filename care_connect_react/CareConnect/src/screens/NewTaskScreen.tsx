@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
-import {ScrollView, StyleSheet, Text} from 'react-native';
-import {Field, PrimaryButton, SecondaryButton} from '../components/ui';
-import {makeTask, useAppState} from '../state/AppState';
+import React, { useState } from 'react';
+import { ScrollView, StyleSheet, Text } from 'react-native';
+import { Field, PrimaryButton, SecondaryButton } from '../components/ui';
+import { makeTask, useAppState } from '../state/AppState';
 
 export interface NewTaskScreenProps {
   onConfirm?: () => void;
@@ -14,7 +14,7 @@ export default function NewTaskScreen({
   onDiscard,
   onOpenMenu,
 }: NewTaskScreenProps) {
-  const {addTask} = useAppState();
+  const { addTask } = useAppState();
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
 
@@ -36,28 +36,41 @@ export default function NewTaskScreen({
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Add New Task</Text>
+      <Text accessibilityRole="header" style={styles.title}>
+        Add New Task
+      </Text>
       <Field
         label="Task Title"
         testID="new-task-title"
         value={title}
+        accessibilityHint="Enter a short title for the task"
         onChangeText={setTitle}
       />
       <Field
         label="Details (optional)"
         testID="new-task-details"
         value={details}
+        accessibilityHint="Enter optional task details"
         onChangeText={setDetails}
         multiline
       />
-      <PrimaryButton label="Confirm" testID="new-task-confirm" onPress={confirm} />
+      <PrimaryButton
+        label="Confirm"
+        accessibilityLabel="Confirm new task"
+        accessibilityHint="Adds this task to the task list"
+        testID="new-task-confirm"
+        onPress={confirm}
+      />
       <SecondaryButton
         label="Discard Changes"
+        accessibilityHint="Returns without adding this task"
         testID="new-task-discard"
         onPress={() => onDiscard?.()}
       />
       <PrimaryButton
         label="MENU"
+        accessibilityLabel="Open menu"
+        accessibilityHint="Opens the main navigation menu"
         testID="new-task-menu"
         onPress={() => onOpenMenu?.()}
       />
@@ -66,6 +79,6 @@ export default function NewTaskScreen({
 }
 
 const styles = StyleSheet.create({
-  container: {padding: 24},
-  title: {fontSize: 28, fontWeight: '600', marginBottom: 24},
+  container: { padding: 24 },
+  title: { fontSize: 28, fontWeight: '600', marginBottom: 24 },
 });

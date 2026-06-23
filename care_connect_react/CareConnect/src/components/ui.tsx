@@ -15,17 +15,25 @@ export function PrimaryButton({
   label,
   onPress,
   testID,
+  accessibilityLabel = label,
+  accessibilityHint,
 }: {
   label: string;
   onPress?: () => void;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }) {
   return (
     <Pressable
+      accessible
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
+      accessibilityHint={accessibilityHint}
       testID={testID}
       onPress={onPress}
-      style={styles.primary}>
+      style={styles.primary}
+    >
       <Text style={styles.primaryText}>{label}</Text>
     </Pressable>
   );
@@ -35,22 +43,32 @@ export function PrimaryButton({
 export function SecondaryButton({
   label,
   onPress,
-  selected = false,
+  selected,
   testID,
+  accessibilityLabel = label,
+  accessibilityHint,
 }: {
   label: string;
   onPress?: () => void;
   selected?: boolean;
   testID?: string;
+  accessibilityLabel?: string;
+  accessibilityHint?: string;
 }) {
   return (
     <Pressable
+      accessible
+      accessibilityLabel={accessibilityLabel}
       accessibilityRole="button"
-      accessibilityState={{selected}}
+      accessibilityHint={accessibilityHint}
+      accessibilityState={selected === undefined ? undefined : { selected }}
       testID={testID}
       onPress={onPress}
-      style={[styles.secondary, selected && styles.secondarySelected]}>
-      <Text style={[styles.secondaryText, selected && styles.secondarySelectedText]}>
+      style={[styles.secondary, selected && styles.secondarySelected]}
+    >
+      <Text
+        style={[styles.secondaryText, selected && styles.secondarySelectedText]}
+      >
         {label}
       </Text>
     </Pressable>
@@ -62,16 +80,29 @@ export function Field({
   label,
   testID,
   ...inputProps
-}: {label: string; testID?: string} & TextInputProps) {
+}: { label: string; testID?: string } & TextInputProps) {
   return (
     <View style={styles.fieldGroup}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      <TextInput style={styles.input} testID={testID} {...inputProps} />
+      <Text
+        accessible={false}
+        accessibilityElementsHidden
+        importantForAccessibility="no"
+        style={styles.fieldLabel}
+      >
+        {label}
+      </Text>
+      <TextInput
+        accessible
+        accessibilityLabel={inputProps.accessibilityLabel ?? label}
+        style={styles.input}
+        testID={testID}
+        {...inputProps}
+      />
     </View>
   );
 }
 
-export function Card({children}: {children: React.ReactNode}) {
+export function Card({ children }: { children: React.ReactNode }) {
   return <View style={styles.card}>{children}</View>;
 }
 
@@ -85,7 +116,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  primaryText: {color: '#FFFFFF', fontSize: 16, fontWeight: '600'},
+  primaryText: { color: '#FFFFFF', fontSize: 16, fontWeight: '600' },
   secondary: {
     borderWidth: 1.5,
     borderColor: TEAL,
@@ -96,11 +127,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  secondarySelected: {backgroundColor: TEAL, borderColor: TEAL},
-  secondaryText: {color: TEAL, fontSize: 16, fontWeight: '600'},
-  secondarySelectedText: {color: '#FFFFFF'},
-  fieldGroup: {marginBottom: 16},
-  fieldLabel: {fontSize: 16, marginBottom: 8},
+  secondarySelected: { backgroundColor: TEAL, borderColor: TEAL },
+  secondaryText: { color: TEAL, fontSize: 16, fontWeight: '600' },
+  secondarySelectedText: { color: '#FFFFFF' },
+  fieldGroup: { marginBottom: 16 },
+  fieldLabel: { fontSize: 16, marginBottom: 8 },
   input: {
     borderWidth: 1,
     borderColor: TEAL,

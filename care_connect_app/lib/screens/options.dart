@@ -37,21 +37,25 @@ class OptionsScreen extends StatelessWidget {
                         children: [
                           _OptionButton(
                             label: 'Small',
+                            semanticsLabel: 'Font size small',
                             selected: state.fontSizeOption == FontSizeOption.small,
                             onTap: () => state.setFontSize(FontSizeOption.small),
                           ),
                           _OptionButton(
                             label: 'Medium',
+                            semanticsLabel: 'Font size medium',
                             selected: state.fontSizeOption == FontSizeOption.medium,
                             onTap: () => state.setFontSize(FontSizeOption.medium),
                           ),
                           _OptionButton(
                             label: 'Large',
+                            semanticsLabel: 'Font size large',
                             selected: state.fontSizeOption == FontSizeOption.large,
                             onTap: () => state.setFontSize(FontSizeOption.large),
                           ),
                           _OptionButton(
                             label: 'XL',
+                            semanticsLabel: 'Font size extra large',
                             selected: state.fontSizeOption == FontSizeOption.xl,
                             onTap: () => state.setFontSize(FontSizeOption.xl),
                           ),
@@ -75,6 +79,7 @@ class OptionsScreen extends StatelessWidget {
                           Expanded(
                             child: _OptionButton(
                               label: 'Normal',
+                              semanticsLabel: 'Contrast normal',
                               selected: state.contrastOption == ContrastOption.normal,
                               onTap: () => state.setContrast(ContrastOption.normal),
                             ),
@@ -83,6 +88,7 @@ class OptionsScreen extends StatelessWidget {
                           Expanded(
                             child: _OptionButton(
                               label: 'High',
+                              semanticsLabel: 'Contrast high',
                               selected: state.contrastOption == ContrastOption.high,
                               onTap: () => state.setContrast(ContrastOption.high),
                             ),
@@ -91,6 +97,7 @@ class OptionsScreen extends StatelessWidget {
                           Expanded(
                             child: _OptionButton(
                               label: 'XHigh',
+                              semanticsLabel: 'Contrast extra high',
                               selected: state.contrastOption == ContrastOption.xhigh,
                               onTap: () => state.setContrast(ContrastOption.xhigh),
                             ),
@@ -119,32 +126,42 @@ class OptionsScreen extends StatelessWidget {
 class _OptionButton extends StatelessWidget {
   const _OptionButton({
     required this.label,
+    required this.semanticsLabel,
     required this.selected,
     required this.onTap,
   });
   final String label;
+  final String semanticsLabel;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    if (selected) {
-      return ElevatedButton(
-        onPressed: onTap,
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 56),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-        child: Text(label),
-      );
-    }
-    return OutlinedButton(
-      onPressed: onTap,
-      style: OutlinedButton.styleFrom(
-        minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-      ),
-      child: Text(label),
+    return Semantics(
+      label: semanticsLabel,
+      selected: selected,
+      button: true,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: selected
+          ? ElevatedButton(
+              onPressed: onTap,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text(label),
+            )
+          : OutlinedButton(
+              onPressed: onTap,
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 56),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8)),
+              ),
+              child: Text(label),
+            ),
     );
   }
 }

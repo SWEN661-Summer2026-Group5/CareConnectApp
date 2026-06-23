@@ -35,7 +35,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   Expanded(
                     child: ElevatedButton(
                       onPressed: () => Navigator.of(context).push(
-                        MaterialPageRoute(builder: (_) => const NewTaskScreen()),
+                        MaterialPageRoute(
+                          builder: (_) => const NewTaskScreen(),
+                        ),
                       ),
                       child: const Text('Add New Task'),
                     ),
@@ -48,23 +50,28 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              Text('Active (${active.length})', style: theme.textTheme.bodyMedium),
+              Text(
+                'Active (${active.length})',
+                style: theme.textTheme.bodyMedium,
+              ),
               const SizedBox(height: 8),
               Expanded(
                 child: ListView(
                   children: [
-                    ...active.map((task) => Padding(
-                          padding: const EdgeInsets.only(bottom: 12),
-                          child: _TaskCard(
-                            title: task.title,
-                            timeLabel: formatDueDate(task.dueDate),
-                            onTap: () => Navigator.of(context).push(
-                              MaterialPageRoute(
-                                  builder: (_) =>
-                                      TaskDetailScreen(taskId: task.id)),
+                    ...active.map(
+                      (task) => Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: _TaskCard(
+                          title: task.title,
+                          timeLabel: formatDueDate(task.dueDate),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => TaskDetailScreen(taskId: task.id),
                             ),
                           ),
-                        )),
+                        ),
+                      ),
+                    ),
                     if (completed.isNotEmpty) ...[
                       const SizedBox(height: 4),
                       _CompletedToggle(
@@ -74,24 +81,26 @@ class _TaskListScreenState extends State<TaskListScreen> {
                             setState(() => _showCompleted = !_showCompleted),
                       ),
                       if (_showCompleted)
-                        ...completed.map((task) => Padding(
-                              padding: const EdgeInsets.only(top: 12),
-                              child: _TaskCard(
-                                title: task.title,
-                                timeLabel: formatDueDate(task.dueDate),
-                                muted: true,
-                                onTap: () {},
-                              ),
-                            )),
+                        ...completed.map(
+                          (task) => Padding(
+                            padding: const EdgeInsets.only(top: 12),
+                            child: _TaskCard(
+                              title: task.title,
+                              timeLabel: formatDueDate(task.dueDate),
+                              muted: true,
+                              onTap: () {},
+                            ),
+                          ),
+                        ),
                     ],
                   ],
                 ),
               ),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const MenuScreen()),
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const MenuScreen())),
                 child: const Text('MENU'),
               ),
             ],
@@ -117,34 +126,41 @@ class _TaskCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                title,
-                style: theme.textTheme.titleLarge?.copyWith(
-                  color: muted
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
-                      : null,
-                  decoration: muted ? TextDecoration.lineThrough : null,
+    return Semantics(
+      label: '$title. $timeLabel${muted ? '. Completed' : ''}',
+      hint: muted ? null : 'Open task details',
+      button: true,
+      excludeSemantics: true,
+      onTap: onTap,
+      child: Card(
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: muted
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
+                        : null,
+                    decoration: muted ? TextDecoration.lineThrough : null,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                timeLabel,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: muted
-                      ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
-                      : theme.colorScheme.secondary,
+                const SizedBox(height: 4),
+                Text(
+                  timeLabel,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: muted
+                        ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
+                        : theme.colorScheme.secondary,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -166,9 +182,12 @@ class _CompletedToggle extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
+      label: '$count completed ${count == 1 ? 'task' : 'tasks'}',
+      hint: expanded ? 'Collapse completed tasks' : 'Expand completed tasks',
       button: true,
-      label: '$count completed tasks',
       expanded: expanded,
+      excludeSemantics: true,
+      onTap: onTap,
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(8),
@@ -201,9 +220,14 @@ class _SortButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Semantics(
       label: ascending
-          ? 'Sort tasks ascending by due date'
-          : 'Sort tasks descending by due date',
+          ? 'Sort tasks. Current order earliest first'
+          : 'Sort tasks. Current order latest first',
+      hint: ascending
+          ? 'Double tap to sort latest tasks first'
+          : 'Double tap to sort earliest tasks first',
       button: true,
+      excludeSemantics: true,
+      onTap: onTap,
       child: SizedBox(
         width: 56,
         height: 56,
@@ -212,8 +236,9 @@ class _SortButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             padding: EdgeInsets.zero,
             minimumSize: const Size(56, 56),
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
           child: Icon(
             ascending ? Icons.arrow_upward : Icons.arrow_downward,
@@ -256,15 +281,17 @@ class TaskDetailScreen extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         'Due: ${formatDueDate(task.dueDate)}',
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: theme.colorScheme.secondary),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.secondary,
+                        ),
                       ),
                       if (task.details.isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Text(
                           task.details,
-                          style: theme.textTheme.bodyMedium
-                              ?.copyWith(color: theme.colorScheme.secondary),
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.secondary,
+                          ),
                         ),
                       ],
                     ],
@@ -281,22 +308,26 @@ class TaskDetailScreen extends StatelessWidget {
                       children: [
                         Text('Caregiver', style: theme.textTheme.bodyMedium),
                         const SizedBox(height: 8),
-                        Text(task.caregiverName,
-                            style: theme.textTheme.titleLarge),
+                        Text(
+                          task.caregiverName,
+                          style: theme.textTheme.titleLarge,
+                        ),
                         if (task.caregiverPhone.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Text(
                             task.caregiverPhone,
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(color: theme.colorScheme.secondary),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.secondary,
+                            ),
                           ),
                         ],
                         if (task.caregiverEmail.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Text(
                             task.caregiverEmail,
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(color: theme.colorScheme.secondary),
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.secondary,
+                            ),
                           ),
                         ],
                       ],
@@ -316,9 +347,9 @@ class TaskDetailScreen extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
               ElevatedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const MenuScreen()),
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const MenuScreen())),
                 child: const Text('MENU'),
               ),
             ],
@@ -374,12 +405,14 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     final state = AppStateScope.of(context);
     final d = _date ?? DateTime.now();
     final t = _time ?? TimeOfDay.now();
-    state.addTask(Task(
-      id: DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleCtrl.text.trim(),
-      details: _detailsCtrl.text.trim(),
-      dueDate: DateTime(d.year, d.month, d.day, t.hour, t.minute),
-    ));
+    state.addTask(
+      Task(
+        id: DateTime.now().millisecondsSinceEpoch.toString(),
+        title: _titleCtrl.text.trim(),
+        details: _detailsCtrl.text.trim(),
+        dueDate: DateTime(d.year, d.month, d.day, t.hour, t.minute),
+      ),
+    );
     Navigator.of(context).pop();
   }
 
@@ -395,13 +428,18 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
             children: [
               Text('Add New Task', style: theme.textTheme.headlineLarge),
               const Divider(height: 24),
-              Text('Task Title', style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 8),
-              TextField(controller: _titleCtrl),
+              TextField(
+                controller: _titleCtrl,
+                decoration: const InputDecoration(labelText: 'Task title'),
+              ),
               const SizedBox(height: 16),
-              Text('Details (optional)', style: theme.textTheme.bodyMedium),
-              const SizedBox(height: 8),
-              TextField(controller: _detailsCtrl, maxLines: 3),
+              TextField(
+                controller: _detailsCtrl,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'Details, optional',
+                ),
+              ),
               const SizedBox(height: 16),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -415,11 +453,19 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                         OutlinedButton(
                           onPressed: _pickDate,
                           style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 56)),
-                          child: Text(
-                            _date != null
-                                ? '${_date!.month}/${_date!.day}/${_date!.year}'
-                                : 'mm/dd/yyyy',
+                            minimumSize: const Size(double.infinity, 56),
+                          ),
+                          child: Semantics(
+                            label: _date != null
+                                ? 'Due date ${_date!.month}/${_date!.day}/${_date!.year}'
+                                : 'Due date not selected',
+                            hint: 'Choose a due date',
+                            excludeSemantics: true,
+                            child: Text(
+                              _date != null
+                                  ? '${_date!.month}/${_date!.day}/${_date!.year}'
+                                  : 'mm/dd/yyyy',
+                            ),
                           ),
                         ),
                       ],
@@ -435,11 +481,19 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                         OutlinedButton(
                           onPressed: _pickTime,
                           style: OutlinedButton.styleFrom(
-                              minimumSize: const Size(double.infinity, 56)),
-                          child: Text(
-                            _time != null
-                                ? _time!.format(context)
-                                : '--:-- --',
+                            minimumSize: const Size(double.infinity, 56),
+                          ),
+                          child: Semantics(
+                            label: _time != null
+                                ? 'Due time ${_time!.format(context)}'
+                                : 'Due time not selected',
+                            hint: 'Choose a due time',
+                            excludeSemantics: true,
+                            child: Text(
+                              _time != null
+                                  ? _time!.format(context)
+                                  : '--:-- --',
+                            ),
                           ),
                         ),
                       ],
@@ -448,10 +502,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                 ],
               ),
               const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _confirm,
-                child: const Text('Confirm'),
-              ),
+              ElevatedButton(onPressed: _confirm, child: const Text('Confirm')),
               const SizedBox(height: 12),
               OutlinedButton(
                 onPressed: () => Navigator.of(context).pop(),
@@ -459,9 +510,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
               ),
               const SizedBox(height: 12),
               ElevatedButton(
-                onPressed: () => Navigator.of(context).push(
-                  MaterialPageRoute(builder: (_) => const MenuScreen()),
-                ),
+                onPressed: () => Navigator.of(
+                  context,
+                ).push(MaterialPageRoute(builder: (_) => const MenuScreen())),
                 child: const Text('MENU'),
               ),
             ],

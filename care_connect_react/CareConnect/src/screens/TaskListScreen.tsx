@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
-import {Pressable, ScrollView, StyleSheet, Text, View} from 'react-native';
-import {PrimaryButton} from '../components/ui';
-import {useAppState, Task} from '../state/AppState';
-import {formatDueDate} from '../utils/formatDueDate';
+import React, { useState } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { PrimaryButton } from '../components/ui';
+import { useAppState, Task } from '../state/AppState';
+import { formatDueDate } from '../utils/formatDueDate';
 
 export interface TaskListScreenProps {
   onAddTask?: () => void;
@@ -23,11 +23,19 @@ function TaskCard({
 }) {
   return (
     <Pressable
-      accessibilityRole="button"
+      accessible
+      accessibilityLabel={`${task.title}. Due ${formatDueDate(task.dueDate)}${
+        muted ? '. Completed' : ''
+      }`}
+      accessibilityRole={onPress ? 'button' : 'text'}
+      accessibilityHint={onPress ? 'Opens task details' : undefined}
       testID={testID}
       onPress={onPress}
-      style={styles.taskCard}>
-      <Text style={[styles.taskTitle, muted && styles.muted]}>{task.title}</Text>
+      style={styles.taskCard}
+    >
+      <Text style={[styles.taskTitle, muted && styles.muted]}>
+        {task.title}
+      </Text>
       <Text style={[styles.taskTime, muted && styles.muted]}>
         {formatDueDate(task.dueDate)}
       </Text>
@@ -40,13 +48,15 @@ export default function TaskListScreen({
   onOpenTask,
   onOpenMenu,
 }: TaskListScreenProps) {
-  const {activeTasks, completedTasks, sortTasksAsc, toggleTaskSort} =
+  const { activeTasks, completedTasks, sortTasksAsc, toggleTaskSort } =
     useAppState();
   const [showCompleted, setShowCompleted] = useState(false);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Tasks</Text>
+      <Text accessibilityRole="header" style={styles.title}>
+        Tasks
+      </Text>
 
       <View style={styles.row}>
         <View style={styles.flex}>
@@ -57,16 +67,30 @@ export default function TaskListScreen({
           />
         </View>
         <Pressable
+          accessible
+          accessibilityLabel={
+            sortTasksAsc
+              ? 'Sort tasks. Current order earliest first'
+              : 'Sort tasks. Current order latest first'
+          }
           accessibilityRole="button"
-          accessibilityState={{selected: sortTasksAsc}}
+          accessibilityHint={
+            sortTasksAsc
+              ? 'Sorts tasks latest first'
+              : 'Sorts tasks earliest first'
+          }
+          accessibilityState={{ selected: sortTasksAsc }}
           testID="tasks-sort"
           onPress={toggleTaskSort}
-          style={styles.sortButton}>
+          style={styles.sortButton}
+        >
           <Text>{sortTasksAsc ? '▲' : '▼'}</Text>
         </Pressable>
       </View>
 
-      <Text style={styles.sectionLabel}>{`Active (${activeTasks.length})`}</Text>
+      <Text
+        style={styles.sectionLabel}
+      >{`Active (${activeTasks.length})`}</Text>
 
       <ScrollView>
         {activeTasks.map(task => (
@@ -81,11 +105,21 @@ export default function TaskListScreen({
         {completedTasks.length > 0 && (
           <>
             <Pressable
+              accessible
+              accessibilityLabel={`${completedTasks.length} completed ${
+                completedTasks.length === 1 ? 'task' : 'tasks'
+              }`}
               accessibilityRole="button"
-              accessibilityState={{expanded: showCompleted}}
+              accessibilityHint={
+                showCompleted
+                  ? 'Collapses completed tasks'
+                  : 'Expands completed tasks'
+              }
+              accessibilityState={{ expanded: showCompleted }}
               testID="tasks-completed-toggle"
               onPress={() => setShowCompleted(v => !v)}
-              style={styles.completedToggle}>
+              style={styles.completedToggle}
+            >
               <Text>{`${completedTasks.length} Completed`}</Text>
             </Pressable>
             {showCompleted &&
@@ -101,16 +135,22 @@ export default function TaskListScreen({
         )}
       </ScrollView>
 
-      <PrimaryButton label="MENU" testID="tasks-menu" onPress={() => onOpenMenu?.()} />
+      <PrimaryButton
+        label="MENU"
+        accessibilityLabel="Open menu"
+        accessibilityHint="Opens the main navigation menu"
+        testID="tasks-menu"
+        onPress={() => onOpenMenu?.()}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {flex: 1, padding: 24},
-  title: {fontSize: 28, fontWeight: '600', marginBottom: 16},
-  row: {flexDirection: 'row', alignItems: 'center', marginBottom: 16},
-  flex: {flex: 1, marginRight: 12},
+  container: { flex: 1, padding: 24 },
+  title: { fontSize: 28, fontWeight: '600', marginBottom: 16 },
+  row: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  flex: { flex: 1, marginRight: 12 },
   sortButton: {
     width: 56,
     height: 56,
@@ -120,7 +160,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  sectionLabel: {marginBottom: 8},
+  sectionLabel: { marginBottom: 8 },
   taskCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 8,
@@ -129,9 +169,9 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 12,
   },
-  taskTitle: {fontSize: 20, fontWeight: '600', marginBottom: 4},
-  taskTime: {color: '#17B5C3'},
-  muted: {color: 'rgba(26,43,51,0.45)', textDecorationLine: 'line-through'},
+  taskTitle: { fontSize: 20, fontWeight: '600', marginBottom: 4 },
+  taskTime: { color: '#17B5C3' },
+  muted: { color: 'rgba(26,43,51,0.45)', textDecorationLine: 'line-through' },
   completedToggle: {
     borderWidth: 1,
     borderColor: '#CCD5DC',
