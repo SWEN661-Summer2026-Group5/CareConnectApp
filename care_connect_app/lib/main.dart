@@ -204,7 +204,7 @@ class AppStateScope extends InheritedNotifier<AppState> {
 // ─── Theme ────────────────────────────────────────────────────────────────────
 
 const _primaryTeal = Color(0xFF0B7074);
-const _accentCyan = Color(0xFF17B5C3);
+const _accentCyan = Color(0xFF0C7585);
 const _bgLight = Color(0xFFEEF2F6);
 
 ThemeData buildTheme(ContrastOption contrast) {
@@ -323,7 +323,7 @@ class _CareConnectAppState extends State<CareConnectApp> {
         home: const LoginScreen(),
         builder: (ctx, child) => ListenableBuilder(
           listenable: _appState,
-          builder: (_, __) => Theme(
+          builder: (_, _) => Theme(
             data: buildTheme(_appState.contrastOption),
             child: MediaQuery(
               data: MediaQuery.of(ctx).copyWith(
