@@ -20,5 +20,15 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: ['./src/test-support/setup.ts'],
     css: false,
+    coverage: {
+      provider: 'v8',
+      exclude: [
+        'electron/**',
+        'src/main.tsx',
+        'src/utils/bridge.ts',
+        '**/*.d.ts',
+        '**/test-support/**',
+      ],
+    },
   },
 });

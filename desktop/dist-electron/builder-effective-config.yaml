@@ -1,0 +1,14 @@
+directories:
+  output: dist-electron
+  buildResources: build
+appId: edu.swen661.careconnect
+productName: CareConnect
+mac:
+  category: public.app-category.healthcare
+  target: dir
+files:
+  - filter:
+      - dist/**/*
+      - electron/**/*
+      - index.html
+electronVersion: 32.3.3
