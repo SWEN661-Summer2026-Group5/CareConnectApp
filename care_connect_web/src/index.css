@@ -479,6 +479,17 @@ h3 {
   text-underline-offset: 2px;
 }
 
+.option-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+.option-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
 .row {
   display: flex;
   align-items: center;
@@ -582,5 +593,96 @@ h3 {
   .table-row {
     flex-wrap: wrap;
     gap: 8px 16px;
+  }
+}
+
+/* ============================================================================
+   Responsive breakpoints
+   Mobile (375px) is the default — every rule above this banner is the mobile
+   layout and is left untouched. The blocks below only widen and re-space it.
+   ============================================================================ */
+
+/* ── Tablet (768px) ────────────────────────────────────────────────────── */
+@media (min-width: 768px) {
+  .app-header {
+    padding: 16px 32px;
+  }
+  .app-main {
+    max-width: 680px;
+    margin: 40px auto;
+    padding: 0 32px;
+  }
+  .app-nav {
+    gap: 32px;
+  }
+  .card {
+    padding: 28px;
+  }
+}
+
+/* ── Desktop (1440px) ──────────────────────────────────────────────────── */
+@media (min-width: 1440px) {
+  .app-header {
+    padding: 20px 48px;
+  }
+  .app-main {
+    max-width: 900px;
+    margin: 48px auto;
+    padding: 0 48px;
+  }
+  .card {
+    padding: 32px;
+    border-radius: 12px;
+  }
+  /* Actions no longer stretch the full column width at this size. */
+  .btn {
+    max-width: 400px;
+  }
+}
+
+/* ── Wide desktop (1200px+): sidebar layout ────────────────────────────────
+   The nav is a child of .app-header, so a grid on .app-shell cannot place it
+   independently — grid only positions direct children. Instead the header
+   itself becomes the 240px left column (brand over nav over status widgets),
+   with main + footer stacked in the right column.
+
+   This block is deliberately last: from 1440px up it and the desktop block
+   both apply, and the sidebar's header padding must win over the 20px 48px
+   set above, which would leave only ~144px of usable width in a 240px column.
+   ─────────────────────────────────────────────────────────────────────────── */
+@media (min-width: 1200px) {
+  .app-shell {
+    display: grid;
+    grid-template-columns: 240px 1fr;
+    grid-template-rows: 1fr auto;
+  }
+  .app-header {
+    grid-column: 1;
+    grid-row: 1 / -1;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 32px;
+    padding: 24px 20px;
+  }
+  .app-nav {
+    flex-direction: column;
+    gap: 4px;
+    width: 100%;
+  }
+  .app-nav__link {
+    width: 100%;
+  }
+  /* Status widgets sit at the foot of the sidebar rather than inline-end. */
+  .app-header__actions {
+    margin-left: 0;
+    margin-top: auto;
+  }
+  .app-main {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .app-footer {
+    grid-column: 2;
+    grid-row: 2;
   }
 }

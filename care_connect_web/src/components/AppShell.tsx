@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useAppState } from '../state/AppState';
 
 /**
  * The persistent application shell, matching the CareConnect desktop layout:
@@ -9,6 +10,8 @@ import { NavLink } from 'react-router-dom';
  * non-interactive so they stay out of the tab sequence.
  */
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const { isSignedIn, signOut } = useAppState();
+
   return (
     <div className="app-shell">
       <a className="skip-link" href="#main-content">
@@ -29,9 +32,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </NavLink>
             </li>
             <li>
-              <NavLink className="app-nav__link" to="/">
-                Sign In
-              </NavLink>
+              {isSignedIn ? (
+                <NavLink className="app-nav__link" to="/" onClick={signOut}>
+                  Sign Out
+                </NavLink>
+              ) : (
+                <NavLink className="app-nav__link" to="/">
+                  Sign In
+                </NavLink>
+              )}
             </li>
           </ul>
         </nav>

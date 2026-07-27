@@ -120,6 +120,7 @@ export function seedContacts(): Contact[] {
 export interface AppStateValue {
   tasks: Task[];
   contacts: Contact[];
+  isSignedIn: boolean;
   fontSizeOption: FontSizeOption;
   contrastOption: ContrastOption;
   sortTasksAsc: boolean;
@@ -129,6 +130,8 @@ export interface AppStateValue {
   completedTasks: Task[];
   sortedContacts: Contact[];
   fontScale: number;
+  signIn: () => void;
+  signOut: () => void;
   addTask: (task: Task) => void;
   markTaskResolved: (id: string) => void;
   addContact: (contact: Contact) => void;
@@ -146,6 +149,7 @@ export interface AppStateSeed {
   contacts?: Contact[];
   fontSizeOption?: FontSizeOption;
   contrastOption?: ContrastOption;
+  isSignedIn?: boolean;
 }
 
 const AppStateContext = createContext<AppStateValue | null>(null);
@@ -173,6 +177,7 @@ export function AppStateProvider({
   const [contrastOption, setContrastOption] = useState<ContrastOption>(
     seed?.contrastOption ?? 'normal',
   );
+  const [isSignedIn, setIsSignedIn] = useState(seed?.isSignedIn ?? false);
   const [sortTasksAsc, setSortTasksAsc] = useState(true);
   const [sortContactsAsc, setSortContactsAsc] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -210,6 +215,9 @@ export function AppStateProvider({
     [contacts, sortContactsAsc, searchQuery],
   );
 
+  const signIn = useCallback(() => setIsSignedIn(true), []);
+  const signOut = useCallback(() => setIsSignedIn(false), []);
+
   const addTask = useCallback((task: Task) => {
     setTasks((prev) => [...prev, task]);
   }, []);
@@ -233,6 +241,7 @@ export function AppStateProvider({
     () => ({
       tasks,
       contacts,
+      isSignedIn,
       fontSizeOption,
       contrastOption,
       sortTasksAsc,
@@ -242,6 +251,8 @@ export function AppStateProvider({
       completedTasks,
       sortedContacts,
       fontScale: FONT_SCALE[fontSizeOption],
+      signIn,
+      signOut,
       addTask,
       markTaskResolved,
       addContact,
@@ -256,6 +267,7 @@ export function AppStateProvider({
     [
       tasks,
       contacts,
+      isSignedIn,
       fontSizeOption,
       contrastOption,
       sortTasksAsc,
@@ -264,6 +276,8 @@ export function AppStateProvider({
       activeTasks,
       completedTasks,
       sortedContacts,
+      signIn,
+      signOut,
       addTask,
       markTaskResolved,
       addContact,

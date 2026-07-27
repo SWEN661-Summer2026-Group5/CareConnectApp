@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { Card, Field, PrimaryButton } from '../components/ui';
 
 export interface LoginScreenProps {
@@ -15,7 +14,6 @@ export default function LoginScreen({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const navigate = useNavigate();
 
   const signIn = () => {
     if (email.trim().length === 0 || password.length === 0) {
@@ -24,7 +22,6 @@ export default function LoginScreen({
     }
     setError('');
     onSignIn?.();
-    navigate('/home');
   };
 
   const onSubmit = (e: React.FormEvent) => {
