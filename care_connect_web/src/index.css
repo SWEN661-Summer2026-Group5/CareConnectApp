@@ -187,7 +187,7 @@ h3 {
   height: 20px;
   padding: 0 6px;
   border-radius: 999px;
-  background: var(--status-alert-fill);
+  background: #b91c1c;
   color: #ffffff;
   font-size: 0.75rem;
   font-weight: 700;
@@ -203,7 +203,7 @@ h3 {
   height: var(--target);
   border: 1.5px solid #4fd1c5;
   border-radius: var(--radius-sm);
-  color: #4fd1c5;
+  color: #ffffff;
   font-weight: 700;
 }
 
