@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import NewTaskScreen from '../screens/NewTaskScreen';
 import { useAppState } from '../state/AppState';
@@ -84,7 +84,6 @@ describe('NewTaskScreen', () => {
 
   it('discards without confirming when nothing has been typed', async () => {
     const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const onDiscard = vi.fn();
     renderWithProviders(<NewTaskScreen onDiscard={onDiscard} />, {
       seed: { tasks: [] },
@@ -92,13 +91,12 @@ describe('NewTaskScreen', () => {
 
     await user.click(screen.getByRole('button', { name: 'Discard Changes' }));
 
-    expect(confirmSpy).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(onDiscard).toHaveBeenCalledOnce();
   });
 
   it('asks before discarding entered details, and honours a refusal', async () => {
     const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(false);
     const onDiscard = vi.fn();
     renderWithProviders(<NewTaskScreen onDiscard={onDiscard} />, {
       seed: { tasks: [] },
@@ -107,7 +105,11 @@ describe('NewTaskScreen', () => {
     await user.type(screen.getByLabelText(/task title/i), 'Half-written task');
     await user.click(screen.getByRole('button', { name: 'Discard Changes' }));
 
-    expect(confirmSpy).toHaveBeenCalledOnce();
+    const dialog = screen.getByRole('dialog', { name: /discard this task/i });
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Keep Editing' }),
+    );
+
     expect(onDiscard).not.toHaveBeenCalled();
   });
 

@@ -61,27 +61,32 @@ describe('MenuScreen', () => {
     expect(onOptions).toHaveBeenCalledOnce();
   });
 
-  it('signs out only after the confirmation is accepted', async () => {
+  it('signs out only after the confirmation dialog is accepted', async () => {
     const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const onSignOut = vi.fn();
     renderWithProviders(<MenuScreen onSignOut={onSignOut} />);
 
     await user.click(screen.getByRole('button', { name: 'Sign Out' }));
 
-    expect(confirmSpy).toHaveBeenCalledOnce();
-    expect(confirmSpy.mock.calls[0][0]).toMatch(/sign out of careconnect/i);
+    const dialog = screen.getByRole('dialog', { name: /sign out of careconnect/i });
+    expect(onSignOut).not.toHaveBeenCalled();
+    await user.click(within(dialog).getByRole('button', { name: 'Sign Out' }));
+
     expect(onSignOut).toHaveBeenCalledOnce();
   });
 
-  it('stays signed in when the confirmation is dismissed', async () => {
+  it('stays signed in when the confirmation dialog is dismissed', async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
     const onSignOut = vi.fn();
     renderWithProviders(<MenuScreen onSignOut={onSignOut} />);
 
     await user.click(screen.getByRole('button', { name: 'Sign Out' }));
+    const dialog = screen.getByRole('dialog', { name: /sign out of careconnect/i });
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Stay Signed In' }),
+    );
 
     expect(onSignOut).not.toHaveBeenCalled();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 });

@@ -31,7 +31,7 @@ function buildMenus(mod: string): TopMenu[] {
     {
       label: 'View',
       items: [
-        { label: 'Go to Home', shortcut: `${mod}+H`, action: 'goHome' },
+        { label: 'Go to Home', shortcut: `${mod}+Shift+H`, action: 'goHome' },
         { label: 'Go to Task List', shortcut: `${mod}+T`, action: 'goTasks' },
         { label: 'Go to Contacts', shortcut: `${mod}+L`, action: 'goContacts' },
         { label: 'Open Settings', shortcut: `${mod}+,`, action: 'goOptions' },

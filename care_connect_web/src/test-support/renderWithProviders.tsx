@@ -3,6 +3,7 @@ import { render } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { AppStateProvider } from '../state/AppState';
 import type { AppStateSeed } from '../state/AppState';
+import { ConfirmProvider } from '../components/ConfirmProvider';
 
 /**
  * Renders a single screen wrapped in the providers it depends on. MemoryRouter
@@ -15,7 +16,9 @@ export function renderWithProviders(
 ) {
   return render(
     <AppStateProvider seed={seed}>
-      <MemoryRouter initialEntries={[route]}>{ui}</MemoryRouter>
+      <MemoryRouter initialEntries={[route]}>
+        <ConfirmProvider>{ui}</ConfirmProvider>
+      </MemoryRouter>
     </AppStateProvider>,
   );
 }

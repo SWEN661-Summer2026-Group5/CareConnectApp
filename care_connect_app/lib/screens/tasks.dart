@@ -13,6 +13,31 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen> {
   bool _showCompleted = false;
+  late final TextEditingController _searchCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    // The query is global (it filters tasks AND contacts), so entering this
+    // screen starts with a clean search rather than a leftover filter.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) AppStateScope.of(context).setSearchQuery('');
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final query = AppStateScope.of(context).searchQuery;
+    if (_searchCtrl.text != query) _searchCtrl.text = query;
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -50,6 +75,15 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 ],
               ),
               const SizedBox(height: 16),
+              TextField(
+                onChanged: state.setSearchQuery,
+                controller: _searchCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Search tasks',
+                  prefixIcon: Icon(Icons.search),
+                ),
+              ),
+              const SizedBox(height: 16),
               Text(
                 'Active (${active.length})',
                 style: theme.textTheme.bodyMedium,
@@ -58,12 +92,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
               Expanded(
                 child: ListView(
                   children: [
+                    if (active.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'No active tasks.',
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                      ),
                     ...active.map(
                       (task) => Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: _TaskCard(
-                          title: task.title,
-                          timeLabel: formatDueDate(task.dueDate),
+                          task: task,
                           onTap: () => Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => TaskDetailScreen(taskId: task.id),
@@ -84,12 +125,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                         ...completed.map(
                           (task) => Padding(
                             padding: const EdgeInsets.only(top: 12),
-                            child: _TaskCard(
-                              title: task.title,
-                              timeLabel: formatDueDate(task.dueDate),
-                              muted: true,
-                              onTap: () {},
-                            ),
+                            child: _TaskCard(task: task, muted: true),
                           ),
                         ),
                     ],
@@ -112,23 +148,66 @@ class _TaskListScreenState extends State<TaskListScreen> {
 }
 
 class _TaskCard extends StatelessWidget {
-  const _TaskCard({
-    required this.title,
-    required this.timeLabel,
-    required this.onTap,
-    this.muted = false,
-  });
-  final String title;
-  final String timeLabel;
-  final VoidCallback onTap;
+  const _TaskCard({required this.task, this.onTap, this.muted = false});
+  final Task task;
+  final VoidCallback? onTap;
   final bool muted;
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final status = taskStatus(task);
+    final timeLabel = formatDueDate(task.dueDate);
+    // Muted (completed) text stays at 60% alpha so it still meets WCAG AA
+    // contrast on the white card.
+    final mutedColor = theme.colorScheme.onSurface.withValues(alpha: 0.6);
+
+    final content = Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            task.title,
+            style: theme.textTheme.titleLarge?.copyWith(
+              color: muted ? mutedColor : null,
+              decoration: muted ? TextDecoration.lineThrough : null,
+            ),
+          ),
+          if (task.details.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text(
+              task.details,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: muted ? mutedColor : theme.colorScheme.secondary,
+              ),
+            ),
+          ],
+          const SizedBox(height: 4),
+          Text(
+            timeLabel,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: muted ? mutedColor : theme.colorScheme.secondary,
+            ),
+          ),
+          const SizedBox(height: 8),
+          StatusBadge(status: status),
+        ],
+      ),
+    );
+
+    final label = '${task.title}. Due $timeLabel. ${status.label}';
+    if (onTap == null) {
+      // Completed rows are informational: no tap handler, no button semantics.
+      return Semantics(
+        label: label,
+        excludeSemantics: true,
+        child: Card(child: content),
+      );
+    }
     return Semantics(
-      label: '$title. $timeLabel${muted ? '. Completed' : ''}',
-      hint: muted ? null : 'Open task details',
+      label: label,
+      hint: 'Open task details',
       button: true,
       excludeSemantics: true,
       onTap: onTap,
@@ -136,32 +215,7 @@ class _TaskCard extends StatelessWidget {
         child: InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(8),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: muted
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
-                        : null,
-                    decoration: muted ? TextDecoration.lineThrough : null,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  timeLabel,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: muted
-                        ? theme.colorScheme.onSurface.withValues(alpha: 0.45)
-                        : theme.colorScheme.secondary,
-                  ),
-                ),
-              ],
-            ),
-          ),
+          child: content,
         ),
       ),
     );
@@ -260,7 +314,30 @@ class TaskDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final state = AppStateScope.of(context);
     final theme = Theme.of(context);
-    final task = state.tasks.firstWhere((t) => t.id == taskId);
+    final task = state.taskById(taskId);
+
+    if (task == null) {
+      return Scaffold(
+        body: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text('Task Details', style: theme.textTheme.headlineLarge),
+                const Divider(height: 24),
+                Text('Task not found.', style: theme.textTheme.bodyLarge),
+                const Spacer(),
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Back'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
       body: SafeArea(
@@ -294,6 +371,8 @@ class TaskDetailScreen extends StatelessWidget {
                           ),
                         ),
                       ],
+                      const SizedBox(height: 12),
+                      StatusBadge(status: taskStatus(task)),
                     ],
                   ),
                 ),
@@ -336,9 +415,19 @@ class TaskDetailScreen extends StatelessWidget {
                 ),
               ],
               const Spacer(),
+              // Focus order matches desktop/web: Mark as Resolved, MENU, Back.
               if (!task.completed) ...[
                 ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
+                    final ok = await showConfirmDialog(
+                      context,
+                      title: 'Mark task as resolved?',
+                      message:
+                          '"${task.title}" will be moved to your completed tasks.',
+                      confirmLabel: 'Mark as Resolved',
+                      cancelLabel: 'Cancel',
+                    );
+                    if (!ok || !context.mounted) return;
                     state.markTaskResolved(taskId);
                     Navigator.of(context).pop();
                   },
@@ -351,6 +440,11 @@ class TaskDetailScreen extends StatelessWidget {
                   context,
                 ).push(MaterialPageRoute(builder: (_) => const MenuScreen())),
                 child: const Text('MENU'),
+              ),
+              const SizedBox(height: 12),
+              OutlinedButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text('Back'),
               ),
             ],
           ),
@@ -374,6 +468,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   final _detailsCtrl = TextEditingController();
   DateTime? _date;
   TimeOfDay? _time;
+  String? _titleError;
 
   @override
   void dispose() {
@@ -400,8 +495,29 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
     if (picked != null) setState(() => _time = picked);
   }
 
+  Future<void> _discard() async {
+    final dirty = _titleCtrl.text.trim().isNotEmpty ||
+        _detailsCtrl.text.trim().isNotEmpty;
+    if (dirty) {
+      final ok = await showConfirmDialog(
+        context,
+        title: 'Discard this task?',
+        message: 'Your entered details will not be saved.',
+        confirmLabel: 'Discard',
+        cancelLabel: 'Keep Editing',
+        destructive: true,
+      );
+      if (!ok || !mounted) return;
+    }
+    if (mounted) Navigator.of(context).pop();
+  }
+
   void _confirm() {
-    if (_titleCtrl.text.trim().isEmpty) return;
+    if (_titleCtrl.text.trim().isEmpty) {
+      setState(() => _titleError = 'A task title is required.');
+      return;
+    }
+    setState(() => _titleError = null);
     final state = AppStateScope.of(context);
     final d = _date ?? DateTime.now();
     final t = _time ?? TimeOfDay.now();
@@ -430,7 +546,10 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
               const Divider(height: 24),
               TextField(
                 controller: _titleCtrl,
-                decoration: const InputDecoration(labelText: 'Task title'),
+                decoration: InputDecoration(
+                  labelText: 'Task title',
+                  errorText: _titleError,
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -505,7 +624,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
               ElevatedButton(onPressed: _confirm, child: const Text('Confirm')),
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: _discard,
                 child: const Text('Discard Changes'),
               ),
               const SizedBox(height: 12),

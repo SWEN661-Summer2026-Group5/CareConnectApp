@@ -14,10 +14,17 @@ yarn-error.log*
 
 # Build outputs
 dist/
+dist-electron/
 build/
 out/
 .next/
 .docusaurus/
+.vercel/
+
+# Test artifacts
+coverage/
+test-results/
+playwright-report/
 
 # ==========================================
 # Flutter / Dart

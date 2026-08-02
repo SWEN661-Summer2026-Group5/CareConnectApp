@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { screen } from '@testing-library/react';
+import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TaskDetailScreen from '../screens/TaskDetailScreen';
 import { makeTask } from '../state/AppState';
@@ -46,7 +46,6 @@ describe('TaskDetailScreen', () => {
 
   it('marks the task resolved after the confirmation is accepted', async () => {
     const user = userEvent.setup();
-    const confirmSpy = vi.spyOn(window, 'confirm').mockReturnValue(true);
     const onResolved = vi.fn();
     renderWithProviders(
       <TaskDetailScreen taskId="1" onResolved={onResolved} />,
@@ -56,8 +55,11 @@ describe('TaskDetailScreen', () => {
     await user.click(
       screen.getByRole('button', { name: /mark take morning medication as resolved/i }),
     );
+    const dialog = screen.getByRole('dialog', { name: /mark task as resolved/i });
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Mark as Resolved' }),
+    );
 
-    expect(confirmSpy).toHaveBeenCalledOnce();
     expect(onResolved).toHaveBeenCalledOnce();
     // The screen re-reads the task from state: the badge flips and the action
     // disappears, proving the store was actually updated.
@@ -69,7 +71,6 @@ describe('TaskDetailScreen', () => {
 
   it('leaves the task untouched when the confirmation is dismissed', async () => {
     const user = userEvent.setup();
-    vi.spyOn(window, 'confirm').mockReturnValue(false);
     const onResolved = vi.fn();
     renderWithProviders(
       <TaskDetailScreen taskId="1" onResolved={onResolved} />,
@@ -79,6 +80,8 @@ describe('TaskDetailScreen', () => {
     await user.click(
       screen.getByRole('button', { name: /mark take morning medication as resolved/i }),
     );
+    const dialog = screen.getByRole('dialog', { name: /mark task as resolved/i });
+    await user.click(within(dialog).getByRole('button', { name: 'Cancel' }));
 
     expect(onResolved).not.toHaveBeenCalled();
     expect(screen.queryByText('Completed')).not.toBeInTheDocument();

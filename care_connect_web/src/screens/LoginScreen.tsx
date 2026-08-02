@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Card, Field, PrimaryButton } from '../components/ui';
 
 export interface LoginScreenProps {
@@ -14,6 +14,11 @@ export default function LoginScreen({
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, []);
 
   const signIn = () => {
     if (email.trim().length === 0 || password.length === 0) {
@@ -31,7 +36,9 @@ export default function LoginScreen({
 
   return (
     <>
-      <h1 className="brand">CareConnect</h1>
+      <h1 className="brand" tabIndex={-1} ref={headingRef}>
+        CareConnect
+      </h1>
       <p className="tagline">Your personal health companion</p>
       <Card>
         <h2 className="section-heading">Sign In</h2>

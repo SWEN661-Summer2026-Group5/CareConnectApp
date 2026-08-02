@@ -38,7 +38,15 @@ test.describe('Keyboard navigation', () => {
   test('the skip link is the first stop and jumps to main content', async ({ page }) => {
     await page.goto('/');
 
-    await page.keyboard.press('Tab');
+    // The login screen focuses its brand heading on load (screen-reader
+    // announcement). Walking backwards from there crosses the signed-out
+    // nav's single Sign In link and then lands on the skip link — proving
+    // the skip link is the very first tabbable element in the document.
+    await expect(page.locator('h1.brand')).toBeFocused();
+    await page.keyboard.press('Shift+Tab');
+    await expect(page.getByRole('link', { name: 'Sign In' })).toBeFocused();
+
+    await page.keyboard.press('Shift+Tab');
     const skip = page.getByRole('link', { name: 'Skip to main content' });
     await expect(skip).toBeFocused();
 

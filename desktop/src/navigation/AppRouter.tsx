@@ -5,6 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { useAppState } from '../state/AppState';
 import LoginScreen from '../screens/LoginScreen';
 import ForgotPasswordScreen from '../screens/ForgotPasswordScreen';
 import HomeScreen from '../screens/HomeScreen';
@@ -40,7 +41,15 @@ export default function AppRouter() {
   const current = stack[stack.length - 1];
   const authenticated = !PRE_AUTH.has(current.name);
   const confirm = useConfirm();
+  const { setSearchQuery } = useAppState();
   const searchRef = useRef<HTMLInputElement>(null);
+
+  // ── Clear the search when the screen changes ────────────────────────────
+  // The query is global (it filters tasks AND contacts), so a leftover query
+  // from one screen would silently empty the next one's list.
+  useEffect(() => {
+    setSearchQuery('');
+  }, [current.name, setSearchQuery]);
 
   const push = useCallback((route: Route) => setStack((s) => [...s, route]), []);
   const pop = useCallback(
@@ -104,7 +113,7 @@ export default function AppRouter() {
           message:
             `Keyboard shortcuts: New Task ${m}+N, Save/Confirm ${m}+S, ` +
             `Search ${m}+F, Settings ${m}+comma, Mark Resolved ${m}+R, ` +
-            `Home ${m}+H, Tasks ${m}+T, Contacts ${m}+L, Sort ${m}+Up/Down, ` +
+            `Home ${m}+Shift+H, Tasks ${m}+T, Contacts ${m}+L, Sort ${m}+Up/Down, ` +
             `Sign Out ${m}+Shift+Q. Use Tab and Enter to reach every action ` +
             `without holding keys.`,
           confirmLabel: 'Close',
@@ -167,6 +176,7 @@ export default function AppRouter() {
         fn();
       };
       if (e.shiftKey && k === 'q') return run(actions.signOut);
+      if (e.shiftKey && k === 'h') return run(actions.goHome);
       if (e.shiftKey) return;
       switch (k) {
         case 'n':
@@ -179,8 +189,6 @@ export default function AppRouter() {
           return run(actions.resolve);
         case ',':
           return run(actions.goOptions);
-        case 'h':
-          return run(actions.goHome);
         case 't':
           return run(actions.goTasks);
         case 'l':

@@ -1,4 +1,5 @@
 import { SecondaryButton } from '../components/ui';
+import { useConfirm } from '../components/ConfirmProvider';
 
 export interface MenuScreenProps {
   onHome?: () => void;
@@ -25,10 +26,16 @@ export default function MenuScreen({
   onOptions,
   onSignOut,
 }: MenuScreenProps) {
-  const signOut = () => {
-    const ok = window.confirm(
-      'Sign out of CareConnect?\n\nYou will need to sign in again to manage your tasks.',
-    );
+  const confirm = useConfirm();
+
+  const signOut = async () => {
+    const ok = await confirm({
+      title: 'Sign out of CareConnect?',
+      message: 'You will need to sign in again to manage your tasks.',
+      confirmLabel: 'Sign Out',
+      cancelLabel: 'Stay Signed In',
+      destructive: true,
+    });
     if (ok) onSignOut?.();
   };
 

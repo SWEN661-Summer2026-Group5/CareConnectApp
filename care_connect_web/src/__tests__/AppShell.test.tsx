@@ -29,11 +29,12 @@ describe('AppShell', () => {
     ).toBeInTheDocument();
   });
 
-  it('renders the labelled main navigation', () => {
+  it('renders the full labelled navigation once signed in', () => {
     renderWithProviders(
       <AppShell>
         <p>content</p>
       </AppShell>,
+      { seed: { isSignedIn: true } },
     );
 
     const nav = screen.getByRole('navigation', { name: 'Main navigation' });
@@ -45,6 +46,36 @@ describe('AppShell', () => {
       'href',
       '/tasks',
     );
+    expect(within(nav).getByRole('link', { name: 'Contacts' })).toHaveAttribute(
+      'href',
+      '/contacts',
+    );
+    expect(within(nav).getByRole('link', { name: 'Options' })).toHaveAttribute(
+      'href',
+      '/options',
+    );
+    expect(
+      within(nav).getByRole('button', { name: 'Sign Out' }),
+    ).toBeInTheDocument();
+  });
+
+  it('shows the search field only when signed in', () => {
+    const { unmount } = renderWithProviders(
+      <AppShell>
+        <p>content</p>
+      </AppShell>,
+      { seed: { isSignedIn: true } },
+    );
+    expect(screen.getByRole('searchbox', { name: /search/i })).toBeInTheDocument();
+    unmount();
+
+    renderWithProviders(
+      <AppShell>
+        <p>content</p>
+      </AppShell>,
+      { seed: { isSignedIn: false } },
+    );
+    expect(screen.queryByRole('searchbox')).not.toBeInTheDocument();
   });
 
   it('renders the main landmark with its children', () => {
@@ -71,7 +102,7 @@ describe('AppShell', () => {
     );
   });
 
-  it('offers Sign In while signed out', () => {
+  it('offers only Sign In while signed out', () => {
     renderWithProviders(
       <AppShell>
         <p>content</p>
@@ -84,8 +115,9 @@ describe('AppShell', () => {
       '/',
     );
     expect(
-      screen.queryByRole('link', { name: 'Sign Out' }),
+      screen.queryByRole('button', { name: 'Sign Out' }),
     ).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Tasks' })).not.toBeInTheDocument();
   });
 
   it('swaps in Sign Out once signed in', () => {
@@ -96,14 +128,13 @@ describe('AppShell', () => {
       { seed: { isSignedIn: true } },
     );
 
-    expect(screen.getByRole('link', { name: 'Sign Out' })).toHaveAttribute(
-      'href',
-      '/',
-    );
+    expect(
+      screen.getByRole('button', { name: 'Sign Out' }),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Sign In' })).not.toBeInTheDocument();
   });
 
-  it('returns to the signed-out nav after Sign Out is activated', async () => {
+  it('signs out only after the confirmation dialog is accepted', async () => {
     const user = userEvent.setup();
     renderWithProviders(
       <AppShell>
@@ -112,20 +143,42 @@ describe('AppShell', () => {
       { seed: { isSignedIn: true } },
     );
 
-    await user.click(screen.getByRole('link', { name: 'Sign Out' }));
+    await user.click(screen.getByRole('button', { name: 'Sign Out' }));
+    // Still signed in until the dialog is confirmed.
+    const dialog = screen.getByRole('dialog', { name: /sign out of careconnect/i });
+    await user.click(within(dialog).getByRole('button', { name: 'Sign Out' }));
 
     expect(screen.getByRole('link', { name: 'Sign In' })).toBeInTheDocument();
   });
 
-  it('keeps the decorative header widgets out of the accessibility tree', () => {
+  it('stays signed in when the sign-out dialog is dismissed', async () => {
+    const user = userEvent.setup();
+    renderWithProviders(
+      <AppShell>
+        <p>content</p>
+      </AppShell>,
+      { seed: { isSignedIn: true } },
+    );
+
+    await user.click(screen.getByRole('button', { name: 'Sign Out' }));
+    const dialog = screen.getByRole('dialog', { name: /sign out of careconnect/i });
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Stay Signed In' }),
+    );
+
+    expect(screen.queryByRole('link', { name: 'Sign In' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Sign Out' })).toBeInTheDocument();
+  });
+
+  it('keeps the decorative header avatar out of the accessibility tree', () => {
     renderWithProviders(
       <AppShell>
         <p>content</p>
       </AppShell>,
     );
 
-    // The widgets are present in the DOM but hidden from assistive tech, so
+    // The avatar is present in the DOM but hidden from assistive tech, so
     // assert on the aria-hidden wrapper — text queries ignore aria-hidden.
-    expect(screen.getByText('Alerts').closest('[aria-hidden="true"]')).not.toBeNull();
+    expect(screen.getByText('CC').closest('[aria-hidden="true"]')).not.toBeNull();
   });
 });

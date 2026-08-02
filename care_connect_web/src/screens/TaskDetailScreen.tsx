@@ -2,6 +2,7 @@ import { Badge, Card, PrimaryButton, SecondaryButton } from '../components/ui';
 import { useAppState } from '../state/AppState';
 import { formatDueDate } from '../utils/formatDueDate';
 import { taskStatus } from '../utils/taskStatus';
+import { useConfirm } from '../components/ConfirmProvider';
 
 export interface TaskDetailScreenProps {
   taskId: string;
@@ -17,14 +18,18 @@ export default function TaskDetailScreen({
   onOpenMenu,
 }: TaskDetailScreenProps) {
   const { tasks, markTaskResolved } = useAppState();
+  const confirm = useConfirm();
   const task = tasks.find((t) => t.id === taskId);
 
-  const resolve = () => {
+  const resolve = async () => {
     if (!task || task.completed) return;
     // Destructive/important action → explicit confirmation (§3.3.4).
-    const ok = window.confirm(
-      `Mark task as resolved?\n\n"${task.title}" will be moved to your completed tasks.`,
-    );
+    const ok = await confirm({
+      title: 'Mark task as resolved?',
+      message: `"${task.title}" will be moved to your completed tasks.`,
+      confirmLabel: 'Mark as Resolved',
+      cancelLabel: 'Cancel',
+    });
     if (!ok) return;
     markTaskResolved(task.id);
     onResolved?.();

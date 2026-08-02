@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../main.dart';
 import 'auth.dart';
 import 'home.dart';
 import 'tasks.dart';
@@ -50,10 +51,22 @@ class MenuScreen extends StatelessWidget {
                 style: OutlinedButton.styleFrom(
                   side: const BorderSide(color: Color(0xFFCCD5DC)),
                 ),
-                onPressed: () => Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                  (_) => false,
-                ),
+                onPressed: () async {
+                  final ok = await showConfirmDialog(
+                    context,
+                    title: 'Sign out of CareConnect?',
+                    message:
+                        'You will need to sign in again to manage your tasks.',
+                    confirmLabel: 'Sign Out',
+                    cancelLabel: 'Stay Signed In',
+                    destructive: true,
+                  );
+                  if (!ok || !context.mounted) return;
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const LoginScreen()),
+                    (_) => false,
+                  );
+                },
                 child: const Text('Sign Out'),
               ),
             ],

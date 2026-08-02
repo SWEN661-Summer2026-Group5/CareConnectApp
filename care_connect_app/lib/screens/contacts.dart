@@ -4,8 +4,39 @@ import 'menu.dart';
 
 // ─── Contact List ─────────────────────────────────────────────────────────────
 
-class ContactListScreen extends StatelessWidget {
+class ContactListScreen extends StatefulWidget {
   const ContactListScreen({super.key});
+
+  @override
+  State<ContactListScreen> createState() => _ContactListScreenState();
+}
+
+class _ContactListScreenState extends State<ContactListScreen> {
+  late final TextEditingController _searchCtrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchCtrl = TextEditingController();
+    // The query is global (it filters tasks AND contacts), so entering this
+    // screen starts with a clean search rather than a leftover filter.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) AppStateScope.of(context).setSearchQuery('');
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final query = AppStateScope.of(context).searchQuery;
+    if (_searchCtrl.text != query) _searchCtrl.text = query;
+  }
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,6 +72,23 @@ class ContactListScreen extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 16),
+              TextField(
+                onChanged: state.setSearchQuery,
+                controller: _searchCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Search contacts',
+                  prefixIcon: Icon(Icons.search),
+                ),
+              ),
+              const SizedBox(height: 16),
+              if (contacts.isEmpty)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    'No contacts found.',
+                    style: theme.textTheme.bodyLarge,
+                  ),
+                ),
               Expanded(
                 child: ListView.separated(
                   itemCount: contacts.length,
@@ -143,6 +191,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
   final _roleCtrl = TextEditingController();
   final _phoneCtrl = TextEditingController();
   final _emailCtrl = TextEditingController();
+  String? _nameError;
 
   @override
   void dispose() {
@@ -153,8 +202,31 @@ class _AddContactScreenState extends State<AddContactScreen> {
     super.dispose();
   }
 
+  Future<void> _discard() async {
+    final dirty = _nameCtrl.text.trim().isNotEmpty ||
+        _roleCtrl.text.trim().isNotEmpty ||
+        _phoneCtrl.text.trim().isNotEmpty ||
+        _emailCtrl.text.trim().isNotEmpty;
+    if (dirty) {
+      final ok = await showConfirmDialog(
+        context,
+        title: 'Discard this contact?',
+        message: 'Your entered details will not be saved.',
+        confirmLabel: 'Discard',
+        cancelLabel: 'Keep Editing',
+        destructive: true,
+      );
+      if (!ok || !mounted) return;
+    }
+    if (mounted) Navigator.of(context).pop();
+  }
+
   void _confirm() {
-    if (_nameCtrl.text.trim().isEmpty) return;
+    if (_nameCtrl.text.trim().isEmpty) {
+      setState(() => _nameError = 'A contact name is required.');
+      return;
+    }
+    setState(() => _nameError = null);
     AppStateScope.of(context).addContact(Contact(
       id: DateTime.now().millisecondsSinceEpoch.toString(),
       name: _nameCtrl.text.trim(),
@@ -179,7 +251,10 @@ class _AddContactScreenState extends State<AddContactScreen> {
               const Divider(height: 24),
               TextField(
                 controller: _nameCtrl,
-                decoration: const InputDecoration(labelText: 'Contact name'),
+                decoration: InputDecoration(
+                  labelText: 'Contact name',
+                  errorText: _nameError,
+                ),
               ),
               const SizedBox(height: 16),
               TextField(
@@ -214,7 +289,7 @@ class _AddContactScreenState extends State<AddContactScreen> {
               ),
               const SizedBox(height: 12),
               OutlinedButton(
-                onPressed: () => Navigator.of(context).pop(),
+                onPressed: _discard,
                 child: const Text('Discard Changes'),
               ),
               const SizedBox(height: 12),

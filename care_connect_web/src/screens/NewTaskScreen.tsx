@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Field, PrimaryButton, SecondaryButton } from '../components/ui';
 import { makeTask, useAppState } from '../state/AppState';
+import { useConfirm } from '../components/ConfirmProvider';
 
 export interface NewTaskScreenProps {
   onConfirm?: () => void;
@@ -14,6 +15,7 @@ export default function NewTaskScreen({
   onOpenMenu,
 }: NewTaskScreenProps) {
   const { addTask } = useAppState();
+  const confirmDialog = useConfirm();
   const [title, setTitle] = useState('');
   const [details, setDetails] = useState('');
   const [error, setError] = useState('');
@@ -35,12 +37,16 @@ export default function NewTaskScreen({
     onConfirm?.();
   };
 
-  const discard = () => {
+  const discard = async () => {
     const dirty = title.trim().length > 0 || details.trim().length > 0;
     if (dirty) {
-      const ok = window.confirm(
-        'Discard this task?\n\nYour entered details will not be saved.',
-      );
+      const ok = await confirmDialog({
+        title: 'Discard this task?',
+        message: 'Your entered details will not be saved.',
+        confirmLabel: 'Discard',
+        cancelLabel: 'Keep Editing',
+        destructive: true,
+      });
       if (!ok) return;
     }
     onDiscard?.();

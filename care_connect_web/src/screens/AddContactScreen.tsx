@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Field, PrimaryButton, SecondaryButton } from '../components/ui';
 import { makeContact, useAppState } from '../state/AppState';
+import { useConfirm } from '../components/ConfirmProvider';
 
 export interface AddContactScreenProps {
   onConfirm?: () => void;
@@ -14,6 +15,7 @@ export default function AddContactScreen({
   onOpenMenu,
 }: AddContactScreenProps) {
   const { addContact } = useAppState();
+  const confirmDialog = useConfirm();
   const [name, setName] = useState('');
   const [role, setRole] = useState('');
   const [phone, setPhone] = useState('');
@@ -38,12 +40,16 @@ export default function AddContactScreen({
     onConfirm?.();
   };
 
-  const discard = () => {
+  const discard = async () => {
     const dirty = name.trim() || role.trim() || phone.trim() || email.trim();
     if (dirty) {
-      const ok = window.confirm(
-        'Discard this contact?\n\nYour entered details will not be saved.',
-      );
+      const ok = await confirmDialog({
+        title: 'Discard this contact?',
+        message: 'Your entered details will not be saved.',
+        confirmLabel: 'Discard',
+        cancelLabel: 'Keep Editing',
+        destructive: true,
+      });
       if (!ok) return;
     }
     onDiscard?.();

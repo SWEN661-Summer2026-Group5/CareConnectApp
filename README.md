@@ -1,10 +1,12 @@
 # SWEN661-Group-5
 
-This is the Group 5 project for May 2026 SWEN661
+This is the Group 5 project for May 2026 SWEN661.
 
 ## Project Name and Description
 
-This application is called CareConnect and its primary function is that of a task manager application specifically designed for patients with short term memory loss. Group 5's focus will be additionaly UI/UX customization of the CareConnect app for care recipients with Parkinsonian tremors (a "pill-rolling" tremor of the thumb and index finger).
+This application is called **CareConnect**, a task manager designed for care recipients with Parkinson's disease. Group 5's focus is UI/UX customization for users with Parkinsonian tremors (a "pill-rolling" tremor of the thumb and index finger): large touch targets, confirmation steps before important or destructive actions, adjustable font sizes and contrast modes, and full screen-reader/keyboard support.
+
+**Prototype note:** all data is in-memory dummy seed data, and sign-in intentionally accepts any non-empty email/password. There is no backend.
 
 ## Group Members
 
@@ -17,25 +19,29 @@ This application is called CareConnect and its primary function is that of a tas
 
 [Team Charter](https://swen661team5.slack.com/files/U0B4K57NJ3X/F0B51V71LGL/swen_661_team_5_charter.docx)
 
-## Setup instructions
+## Repository layout
 
-This repository contains two implementations of the CareConnect mobile app:
+This repository contains four implementations of the CareConnect prototype:
 
-- Flutter app: `care_connect_app`
-- React Native app: `care_connect_react/CareConnect`
+| Folder | Stack | Target platform |
+|---|---|---|
+| `care_connect_app` | Flutter | Mobile — iOS focus (also runs on Android) |
+| `care_connect_react/CareConnect` | React Native | Mobile — Android focus |
+| `desktop` | Electron + React + Vite | Desktop — macOS focus |
+| `care_connect_web` | React + React Router + Vite | Web (PWA, deployed to Vercel) |
 
-The instructions below cover local development, emulator setup, screen-reader testing, and common build/test commands for both apps.
+All implementations share the same screens (Login, Forgot Password, Home, Task List, Task Detail, New Task, Contacts, Add Contact, Menu, Options), the same seed data, and the same behavioral rules (due-date formatting, task status badges, confirmation dialogs, validation messages). See `docs/navigation-flow.md` for the shared navigation flow.
 
 ## Prerequisites
 
-Install the following before running either app:
+Install the following depending on which app you are running:
 
-- macOS with Xcode installed from the App Store
+- macOS with Xcode installed from the App Store (mobile + desktop)
 - Xcode Command Line Tools selected in `Xcode > Settings > Locations > Command Line Tools`
-- Android Studio with Android SDK, Android Emulator, and at least one Android Virtual Device
-- Flutter SDK available on your `PATH`
-- Node.js `>= 22.11.0` for the React Native app
-- CocoaPods for iOS native dependencies
+- Android Studio with Android SDK, Android Emulator, and at least one Android Virtual Device (mobile)
+- Flutter SDK available on your `PATH` (Flutter app)
+- Node.js `>= 22.11.0` (React Native, desktop, and web apps)
+- CocoaPods for iOS native dependencies (React Native app)
 
 Verify the main tools:
 
@@ -47,7 +53,77 @@ xcodebuild -version
 adb version
 ```
 
-## Android emulator setup for TalkBack audio
+## Flutter app (`care_connect_app`): local development
+
+```bash
+cd care_connect_app
+flutter pub get      # install dependencies
+flutter devices      # list available devices
+flutter run          # run on the open simulator/emulator
+flutter analyze lib  # static analysis
+flutter test         # run the test suite
+```
+
+Build commands:
+
+```bash
+flutter build apk --debug        # Android debug APK
+flutter build ios --simulator    # iOS Simulator build
+```
+
+To run on a specific device: `flutter run -d <device-id>`. For iOS, open the Simulator first with `open -a Simulator`.
+
+## React Native app (`care_connect_react/CareConnect`): local development
+
+```bash
+cd care_connect_react/CareConnect
+npm install          # JavaScript dependencies
+bundle install       # Ruby deps for CocoaPods
+(cd ios && bundle exec pod install)   # iOS native dependencies
+
+npm start            # start Metro
+npm run android      # run on Android emulator (second terminal)
+npm run ios          # run on iOS Simulator (second terminal)
+
+npx tsc --noEmit     # TypeScript validation
+npm run lint         # lint
+npm test -- --runInBand --no-watchman   # Jest tests
+```
+
+Android debug APK: `cd android && ./gradlew assembleDebug`. To use Xcode directly: `open ios/CareConnect.xcworkspace` and run the `CareConnect` scheme.
+
+## Desktop app (`desktop`): local development
+
+```bash
+cd desktop
+npm install
+npm run dev          # Vite dev server + Electron window with live reload
+npm start            # production build + Electron
+npm test             # Vitest suite
+npm run pack         # package a macOS .app into dist-electron/
+```
+
+The desktop app has a native macOS menu with keyboard shortcuts (New Task Cmd+N, Save Cmd+S, Search Cmd+F, Mark Resolved Cmd+R, Go Home Cmd+Shift+H, Tasks Cmd+T, Contacts Cmd+L, Settings Cmd+comma, Sign Out Cmd+Shift+Q). No shortcut needs more than two modifier keys, per the tremor-focused design constraints. Note that Go Home is Cmd+**Shift**+H because plain Cmd+H is reserved by macOS for hiding the app.
+
+## Web app (`care_connect_web`): local development
+
+```bash
+cd care_connect_web
+npm run dev          # Vite dev server
+npm run build        # type-check + production build
+npm run preview      # serve the production build
+npm test             # Vitest suite
+npm run test:e2e     # Playwright end-to-end tests
+npm run lint         # eslint
+```
+
+The web app is a PWA and is deployed to Vercel. Signed-out visitors are redirected to the login screen; sign-in state is in-memory only, so a hard refresh returns to the login screen (prototype behavior).
+
+## Accessibility testing
+
+The Options screen in every implementation provides four font sizes (Small/Medium/Large/XL) and three contrast modes (Normal/High/XHigh). Status meaning is always conveyed by icon + text as well as color (WCAG 1.4.1), and important/destructive actions (mark resolved, discard a dirty form, sign out) always ask for confirmation.
+
+### Android emulator setup for TalkBack audio
 
 For screen-reader testing, the Android emulator must route audio through the host Mac speakers. If TalkBack is enabled but no speech is heard, check the emulator audio configuration.
 
@@ -99,7 +175,7 @@ TalkBack gestures to verify labels:
 - Double tap: activate the focused element
 - Drag over the screen: explore by touch
 
-## iOS Simulator setup for VoiceOver audio
+### iOS Simulator setup for VoiceOver audio
 
 For VoiceOver testing, use Xcode's Simulator/developer tooling rather than a detached or headless simulator session. VoiceOver speech output is most reliable when the Simulator is opened from Xcode and the app is run in that Simulator.
 
@@ -121,7 +197,7 @@ For VoiceOver testing, use Xcode's Simulator/developer tooling rather than a det
 
 6. Confirm the Mac's audio output and volume are enabled. VoiceOver output should play through the host Mac speakers.
 
-7. If VoiceOver does not produce audible output, run the app from Xcode/Simulator again and verify the simulator's developer/accessibility options are active. For manual evidence, the iOS Simulator plus Xcode developer tools should be used so VoiceOver announcements can be heard during testing.
+7. If VoiceOver does not produce audible output, run the app from Xcode/Simulator again and verify the simulator's developer/accessibility options are active.
 
 Recommended for screenshots:
 
@@ -136,149 +212,9 @@ VoiceOver gestures to verify labels:
 - Double tap: activate the focused element
 - Drag over the screen: explore by touch
 
-## Flutter app: local development
+### Screen-reader testing checklist
 
-App path:
-
-```bash
-cd care_connect_app
-```
-
-Install dependencies:
-
-```bash
-flutter pub get
-```
-
-List available devices:
-
-```bash
-flutter devices
-```
-
-Run on Android emulator:
-
-```bash
-flutter run -d <android-device-id>
-```
-
-Run on iOS Simulator:
-
-```bash
-open -a Simulator
-flutter run -d <ios-device-id>
-```
-
-If only one simulator/emulator is running, this is usually enough:
-
-```bash
-flutter run
-```
-
-Analyze app source:
-
-```bash
-flutter analyze lib
-```
-
-Run Flutter tests:
-
-```bash
-flutter test
-```
-
-Build Android debug APK:
-
-```bash
-flutter build apk --debug
-```
-
-Build for iOS Simulator:
-
-```bash
-flutter build ios --simulator
-```
-
-## React Native app: local development
-
-App path:
-
-```bash
-cd care_connect_react/CareConnect
-```
-
-Install JavaScript dependencies:
-
-```bash
-npm install
-```
-
-Install iOS native dependencies:
-
-```bash
-bundle install
-cd ios
-bundle exec pod install
-cd ..
-```
-
-Start Metro:
-
-```bash
-npm start
-```
-
-Run on Android emulator from a second terminal:
-
-```bash
-npm run android
-```
-
-Run on iOS Simulator from a second terminal:
-
-```bash
-npm run ios
-```
-
-Run TypeScript validation:
-
-```bash
-npx tsc --noEmit
-```
-
-Run lint:
-
-```bash
-npm run lint
-```
-
-Run React Native tests:
-
-```bash
-npm test -- --runInBand --no-watchman
-```
-
-Build Android debug APK:
-
-```bash
-cd android
-./gradlew assembleDebug
-cd ..
-```
-
-Open the iOS project in Xcode:
-
-```bash
-open ios/CareConnect.xcworkspace
-```
-
-From Xcode, select an iPhone simulator and run the `CareConnect` scheme.
-
-## Screen-reader testing checklist
-
-Use the same checklist for the Flutter and React Native versions.
-
-Verify that TalkBack and VoiceOver announce clear labels, roles, and hints for:
+Use the same checklist for every implementation. Verify that TalkBack/VoiceOver (mobile) or the platform screen reader (desktop/web) announce clear labels, roles, and hints for:
 
 - Login email field
 - Login password field
@@ -286,15 +222,15 @@ Verify that TalkBack and VoiceOver announce clear labels, roles, and hints for:
 - Forgot password button
 - Sign in button
 - Home/dashboard heading
-- Task cards
+- Task cards (title, due time, and status)
 - View task buttons
 - Sort buttons
 - Completed task expand/collapse control
 - New task form fields
 - Add contact form fields
-- Confirm/cancel actions
+- Confirm/cancel actions (including confirmation dialogs)
 - Menu button
 - Menu navigation actions
-- Accessibility preference options
+- Accessibility preference options (font size and contrast)
 
-Capture screenshots showing TalkBack or VoiceOver focused on key controls so the submitted Word document demonstrates that labels are announced correctly.
+Capture screenshots showing the screen reader focused on key controls so the submitted document demonstrates that labels are announced correctly.

@@ -12,6 +12,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
   bool _showPassword = false;
+  String? _error;
 
   @override
   void dispose() {
@@ -21,11 +22,16 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   void _signIn() {
-    if (_emailCtrl.text.trim().isNotEmpty && _passwordCtrl.text.isNotEmpty) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
-      );
+    // Prototype: any non-empty credentials are accepted.
+    if (_emailCtrl.text.trim().isEmpty || _passwordCtrl.text.isEmpty) {
+      setState(() =>
+          _error = 'Enter both your email address and password to sign in.');
+      return;
     }
+    setState(() => _error = null);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
   }
 
   @override
@@ -96,6 +102,17 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         ),
                       ),
+                      if (_error != null) ...[
+                        const SizedBox(height: 12),
+                        Semantics(
+                          liveRegion: true,
+                          child: Text(
+                            _error!,
+                            style: theme.textTheme.bodyMedium
+                                ?.copyWith(color: theme.colorScheme.error),
+                          ),
+                        ),
+                      ],
                       const SizedBox(height: 8),
                       Align(
                         alignment: Alignment.centerLeft,

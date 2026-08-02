@@ -22,8 +22,15 @@ test.describe('Sign in', () => {
     await page.getByRole('button', { name: 'Sign In', exact: true }).click();
 
     await expect(page).toHaveURL('/home');
-    await expect(page.getByRole('link', { name: 'Sign Out' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign Out' })).toBeVisible();
     await expect(page.getByRole('link', { name: 'Sign In' })).toHaveCount(0);
+  });
+
+  test('redirects protected routes to login while signed out', async ({ page }) => {
+    await page.goto('/tasks');
+
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('heading', { name: 'Sign In' })).toBeVisible();
   });
 
   test('refuses to sign in with empty credentials', async ({ page }) => {

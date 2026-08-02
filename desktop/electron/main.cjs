@@ -97,8 +97,10 @@ function buildMenu() {
       label: 'View',
       submenu: [
         {
+          // Cmd+Shift+H: plain Cmd+H is reserved by macOS for Hide (and the
+          // app menu's `hide` role), so Go Home must not collide with it.
           label: 'Go to Home',
-          accelerator: 'CmdOrCtrl+H',
+          accelerator: 'CmdOrCtrl+Shift+H',
           click: () => send('go-home'),
         },
         {

@@ -3,8 +3,23 @@ import '../main.dart';
 import 'menu.dart';
 import 'tasks.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // A leftover search query would silently change which task shows as
+    // "Next Task", so Home always starts unfiltered.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) AppStateScope.of(context).setSearchQuery('');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +53,11 @@ class HomeScreen extends StatelessWidget {
                           formatDueDate(next.dueDate),
                           style: theme.textTheme.bodyMedium
                               ?.copyWith(color: theme.colorScheme.secondary),
+                        ),
+                        const SizedBox(height: 12),
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: StatusBadge(status: taskStatus(next)),
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton(

@@ -53,6 +53,7 @@ class AppState extends ChangeNotifier {
   ContrastOption contrastOption;
   bool _sortTasksAsc = true;
   bool _sortContactsAsc = true;
+  String _searchQuery = '';
 
   AppState()
       : tasks = _seedTasks(),
@@ -67,7 +68,7 @@ class AppState extends ChangeNotifier {
       Task(
         id: '1',
         title: 'Take morning medication',
-        details: 'Take 2 blue pills and 1 white pill with water',
+        details: 'Take 2 blue pills and 1 white pill with water.',
         dueDate: today.add(const Duration(hours: 9)),
         caregiverName: 'Dr. Sarah Johnson',
         caregiverPhone: '(555) 123-4567',
@@ -76,6 +77,7 @@ class AppState extends ChangeNotifier {
       Task(
         id: '2',
         title: 'Physical therapy appointment',
+        details: 'Bring the exercise log from last week.',
         dueDate: today.add(const Duration(hours: 14)),
         caregiverName: 'Mike Chen',
         caregiverPhone: '(555) 234-5678',
@@ -124,25 +126,45 @@ class AppState extends ChangeNotifier {
         ),
       ];
 
+  static bool _matches(String query, List<String> fields) {
+    final q = query.trim().toLowerCase();
+    if (q.isEmpty) return true;
+    return fields.any((f) => f.toLowerCase().contains(q));
+  }
+
   List<Task> get activeTasks {
-    final list = tasks.where((t) => !t.completed).toList()
+    final list = tasks
+        .where((t) => !t.completed)
+        .where((t) => _matches(_searchQuery, [t.title, t.details]))
+        .toList()
       ..sort((a, b) => _sortTasksAsc
           ? a.dueDate.compareTo(b.dueDate)
           : b.dueDate.compareTo(a.dueDate));
     return list;
   }
 
-  List<Task> get completedTasks => tasks.where((t) => t.completed).toList();
+  List<Task> get completedTasks => tasks
+      .where((t) => t.completed)
+      .where((t) => _matches(_searchQuery, [t.title, t.details]))
+      .toList();
 
   bool get sortTasksAsc => _sortTasksAsc;
   bool get sortContactsAsc => _sortContactsAsc;
+  String get searchQuery => _searchQuery;
 
   List<Contact> get sortedContacts {
-    final list = List<Contact>.from(contacts)
+    final list = contacts
+        .where((c) => _matches(_searchQuery, [c.name, c.role, c.phone, c.email]))
+        .toList()
       ..sort((a, b) => _sortContactsAsc
           ? a.name.compareTo(b.name)
           : b.name.compareTo(a.name));
     return list;
+  }
+
+  void setSearchQuery(String query) {
+    _searchQuery = query;
+    notifyListeners();
   }
 
   void toggleTaskSort() {
@@ -160,8 +182,17 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Task? taskById(String id) {
+    for (final t in tasks) {
+      if (t.id == id) return t;
+    }
+    return null;
+  }
+
   void markTaskResolved(String id) {
-    tasks.firstWhere((t) => t.id == id).completed = true;
+    final task = taskById(id);
+    if (task == null) return;
+    task.completed = true;
     notifyListeners();
   }
 
@@ -282,15 +313,133 @@ ThemeData buildTheme(ContrastOption contrast) {
   );
 }
 
+// ─── Task status (mirrors the desktop / web `taskStatus` helper) ─────────────
+// Meaning is carried by label text and icon as well as colour, so it never
+// depends on colour perception alone (WCAG 1.4.1).
+
+class TaskStatus {
+  final Color color;
+  final String icon;
+  final String label;
+  const TaskStatus(this.color, this.icon, this.label);
+}
+
+TaskStatus taskStatus(Task task) {
+  if (task.completed) {
+    return const TaskStatus(Color(0xFF059669), '✓', 'Completed');
+  }
+  if (task.dueDate.isBefore(DateTime.now())) {
+    return const TaskStatus(Color(0xFFDC2626), '⚠', 'High Priority');
+  }
+  return const TaskStatus(Color(0xFFD97706), '♥', 'Follow-up');
+}
+
+class StatusBadge extends StatelessWidget {
+  const StatusBadge({super.key, required this.status});
+  final TaskStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final isXHigh =
+        AppStateScope.of(context).contrastOption == ContrastOption.xhigh;
+    final color = isXHigh ? Colors.black : status.color;
+    return Semantics(
+      label: status.label,
+      excludeSemantics: true,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        decoration: BoxDecoration(
+          border: Border.all(color: color, width: 1.5),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        child: Text(
+          '${status.icon} ${status.label.toUpperCase()}',
+          style: TextStyle(
+            color: color,
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            letterSpacing: 0.4,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Confirmation dialog (mirrors the desktop / web confirm flows) ───────────
+// Important or destructive actions get an explicit confirmation step so an
+// accidental tap (the core tremor scenario) is always recoverable.
+
+Future<bool> showConfirmDialog(
+  BuildContext context, {
+  required String title,
+  required String message,
+  required String confirmLabel,
+  required String cancelLabel,
+  bool destructive = false,
+}) async {
+  final theme = Theme.of(context);
+  final result = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => AlertDialog(
+      title: Text(title, style: theme.textTheme.titleLarge),
+      content: Text(message, style: theme.textTheme.bodyMedium),
+      actions: [
+        OutlinedButton(
+          style: OutlinedButton.styleFrom(
+            minimumSize: const Size(0, 56),
+          ),
+          onPressed: () => Navigator.of(ctx).pop(false),
+          child: Text(cancelLabel),
+        ),
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(0, 56),
+            backgroundColor:
+                destructive ? theme.colorScheme.error : null,
+          ),
+          onPressed: () => Navigator.of(ctx).pop(true),
+          child: Text(confirmLabel),
+        ),
+      ],
+    ),
+  );
+  return result ?? false;
+}
+
 // ─── Utility ──────────────────────────────────────────────────────────────────
+
+// Same rules as the desktop and web apps:
+//   same calendar day     → "Today at 9:00 AM"
+//   next calendar day     → "Tomorrow at 2:30 PM"
+//   previous calendar day → "Yesterday at 11:00 PM"
+//   anything else         → "Mon, Aug 3 at 10:00 AM"
+const _weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+const _months = [
+  'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec',
+];
 
 String formatDueDate(DateTime dt) {
   final now = DateTime.now();
-  final isToday = dt.year == now.year && dt.month == now.month && dt.day == now.day;
+  // Hours-based then rounded so a DST-shortened day still counts as one day.
+  final dayDiff = (DateTime(dt.year, dt.month, dt.day)
+              .difference(DateTime(now.year, now.month, now.day))
+              .inHours /
+          24)
+      .round();
   final h = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
   final m = dt.minute.toString().padLeft(2, '0');
   final ampm = dt.hour < 12 ? 'AM' : 'PM';
-  return '${isToday ? "Today" : "Tomorrow"} at $h:$m $ampm';
+  final time = '$h:$m $ampm';
+
+  return switch (dayDiff) {
+    0 => 'Today at $time',
+    1 => 'Tomorrow at $time',
+    -1 => 'Yesterday at $time',
+    _ =>
+      '${_weekdays[dt.weekday - 1]}, ${_months[dt.month - 1]} ${dt.day} at $time',
+  };
 }
 
 // ─── Entry Point ──────────────────────────────────────────────────────────────
